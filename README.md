@@ -185,6 +185,8 @@ pytest tests/ -v
 ---
 
 <div align="center">
-  <p>تم التطوير بواسطة فريق TIF • Built with ❤️ using Flask, MongoDB & AI</p>
-  <p>لمزيد من المعلومات أو الحصول على دعم: افتح Issue أو اتصل عبر GitHub</p>
+  <p>تم تطوير المشروع بواسطة <strong>Rami Sharaf Al‑Din</strong></p>
+  <p>التواصل والدعم / Support & Contact: <strong>r.sharafaldin@gmail.com</strong></p>
+  <p>Built with ❤️ using Flask, MongoDB & AI</p>
+  <p>لمزيد من المعلومات أو للحصول على دعم: افتح Issue أو راسل عبر البريد الإلكتروني أعلاه</p>
 </div>
