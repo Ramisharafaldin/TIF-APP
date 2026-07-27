@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}من نحن - TIF App{% endblock %}
+
+{% block body %}
+<div class="relative flex h-full min-h-screen w-full flex-col text-text-main overflow-x-hidden">
+    <!-- Header -->
+    <header
+        class="flex items-center justify-between whitespace-nowrap border-b border-border-color px-10 py-4 bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <div class="flex items-center gap-4 text-text-main">
+            <div
+                class="bg-primary rounded-xl size-10 flex items-center justify-center text-text-main font-bold text-xl shadow-md">
+                T
+            </div>
+            <h2 class="text-xl font-bold leading-tight tracking-tight font-display">TIF App</h2>
+        </div>
+        <div class="flex items-center gap-4">
+            <div
+                class="bg-primary rounded-full size-11 border-2 border-primary flex items-center justify-center text-text-main font-bold text-sm shadow-sm">
+                {{ session.username[0].upper() if session.username else 'U' }}
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex flex-1 justify-center items-center py-16 px-4">
+        <div class="flex flex-col w-full max-w-[650px]">
+            <div
+                class="bg-white rounded-2xl shadow-xl shadow-sky-900/5 border border-border-color p-8 md:p-14 flex flex-col gap-10">
+                <!-- Header Section -->
+                <div class="flex flex-col items-center justify-center gap-2">
+                    <div class="bg-primary/20 p-3 rounded-full mb-2">
+                        <span class="material-symbols-outlined text-[40px] text-primary-dark block">info</span>
+                    </div>
+                    <h1 class="text-text-main tracking-tight text-3xl font-bold">من نحن</h1>
+                    <p class="text-text-muted font-medium text-center max-w-sm">تطبيق TIF لإدارة المخزون والتنبؤ
+                        بالطلبات - رؤية ذكية لمستقبل أعمالك</p>
+                </div>
+
+                <!-- Developer Info -->
+                <div class="flex flex-col items-center gap-6">
+                    <div class="relative">
+                        <div
+                            class="bg-gradient-to-br from-primary to-primary-dark rounded-full h-36 w-36 border-4 border-primary shadow-lg flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[60px] text-text-main">person</span>
+                        </div>
+                        <div
+                            class="absolute bottom-2 right-2 bg-primary text-text-main rounded-full p-1.5 border-4 border-white shadow-md">
+                            <span class="material-symbols-outlined text-[18px] font-bold block">verified</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center text-center gap-1">
+                        <p class="text-text-main text-2xl font-bold leading-tight">Ramy Sharaf El-Din</p>
+                        <p class="text-sky-600 text-lg font-semibold">المطور والمؤسس</p>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="w-full h-px bg-gradient-to-r from-transparent via-border-color to-transparent"></div>
+
+                <!-- Contact Options -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <a class="group flex flex-col items-center justify-center gap-4 rounded-xl border border-border-color bg-app-bg p-6 transition-all duration-300 hover:border-primary hover:bg-white hover:-translate-y-2 hover:shadow-xl hover:shadow-primary/10 cursor-pointer"
+                        href="mailto:r.sharafaldin@gmail.com">
+                        <div
+                            class="flex items-center justify-center size-14 rounded-full bg-primary text-text-main group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined text-[28px]">mail</span>
+                        </div>
+                        <h2 class="text-text-main text-sm font-bold leading-tight">البريد الإلكتروني</h2>
+                    </a>
+
+                    <a class="group flex flex-col items-center justify-center gap-4 rounded-xl border border-border-color bg-app-bg p-6 transition-all duration-300 hover:border-primary hover:bg-white hover:-translate-y-2 hover:shadow-xl hover:shadow-primary/10 cursor-pointer"
+                        href="tel:+201111526672">
+                        <div
+                            class="flex items-center justify-center size-14 rounded-full bg-primary text-text-main group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined text-[28px]">call</span>
+                        </div>
+                        <h2 class="text-text-main text-sm font-bold leading-tight">الهاتف</h2>
+                    </a>
+
+                    <a class="group flex flex-col items-center justify-center gap-4 rounded-xl border border-border-color bg-app-bg p-6 transition-all duration-300 hover:border-primary hover:bg-white hover:-translate-y-2 hover:shadow-xl hover:shadow-primary/10 cursor-pointer"
+                        href="https://wa.me/201111526672">
+                        <div
+                            class="flex items-center justify-center size-14 rounded-full bg-primary text-text-main group-hover:scale-110 transition-transform">
+                            <span class="material-symbols-outlined text-[28px]">chat</span>
+                        </div>
+                        <h2 class="text-text-main text-sm font-bold leading-tight">واتساب</h2>
+                    </a>
+                </div>
+
+                <!-- Back to Dashboard Button -->
+                <div class="flex justify-center pt-4">
+                    <a href="{{ url_for('dashboard') }}"
+                        class="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dark text-text-main rounded-xl text-sm font-bold transition-colors shadow-md">
+                        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                        <span>العودة للوحة التحكم</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="flex flex-col gap-6 px-10 py-8 text-center border-t border-border-color bg-white">
+        <div class="flex justify-center items-center gap-2 text-primary-dark">
+            <span class="material-symbols-outlined text-[20px]">inventory_2</span>
+            <span class="font-bold text-text-main">TIF App</span>
+        </div>
+        <p class="text-text-muted text-sm font-medium leading-normal">© 2024 TIF App - نظام متكامل لإدارة المخزون
+            والتنبؤ الذكي. جميع الحقوق محفوظة.</p>
+    </footer>
+</div>
+{% endblock %}

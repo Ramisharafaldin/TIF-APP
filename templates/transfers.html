@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+
+{% block title %}تحويلات الفروع - TIF App{% endblock %}
+
+{% block body %}
+<div class="bg-app-bg text-slate-800 antialiased overflow-x-hidden transition-colors duration-200">
+    <div class="relative flex min-h-screen w-full">
+        <!-- Sidebar -->
+        <aside
+            class="fixed right-0 top-0 h-full w-64 border-l border-text-main/10 bg-app-sidebar p-4 hidden lg:flex lg:flex-col z-20">
+            <div class="flex gap-3 items-center mb-8 px-2">
+                <div
+                    class="bg-primary rounded-xl size-10 shadow-md ring-2 ring-primary flex items-center justify-center text-text-main font-bold text-xl">
+                    T
+                </div>
+                <div class="flex flex-col">
+                    <h1 class="text-white text-base font-bold leading-tight">تطبيق TIF</h1>
+                    <p class="text-sky-300 text-[10px] font-bold tracking-wider uppercase">مدير المخزون</p>
+                </div>
+            </div>
+
+            <nav class="flex flex-col gap-1.5 flex-1">
+                <a class="flex items-center gap-3 px-4 py-3 text-sky-100 hover:bg-sky-800 rounded-xl group transition-all"
+                    href="{{ url_for('dashboard') }}">
+                    <span
+                        class="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">dashboard</span>
+                    <p class="text-sm font-medium">لوحة التحكم</p>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-sky-100 hover:bg-sky-800 rounded-xl group transition-all"
+                    href="{{ url_for('inventory') }}">
+                    <span
+                        class="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">inventory_2</span>
+                    <p class="text-sm font-medium">المخزون</p>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 bg-primary text-text-main rounded-xl shadow-lg shadow-primary/20 transition-all font-bold"
+                    href="{{ url_for('transfers') }}">
+                    <span class="material-symbols-outlined fill-current text-[22px]">swap_horiz</span>
+                    <p class="text-sm">تحويلات الفروع</p>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-sky-100 hover:bg-sky-800 rounded-xl group transition-all"
+                    href="{{ url_for('forecasting') }}">
+                    <span
+                        class="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">trending_up</span>
+                    <p class="text-sm font-medium">التوقعات</p>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-sky-100 hover:bg-sky-800 rounded-xl group transition-all"
+                    href="{{ url_for('data_upload') }}">
+                    <span
+                        class="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">upload</span>
+                    <p class="text-sm font-medium">رفع البيانات</p>
+                </a>
+
+                <div class="mt-auto pt-4 border-t border-sky-800/50">
+                    {% if session.is_admin %}
+                    <a class="flex items-center gap-3 px-4 py-3 text-sky-100 hover:bg-sky-800 rounded-xl group transition-all mb-2"
+                        href="{{ url_for('admin') }}">
+                        <span
+                            class="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">admin_panel_settings</span>
+                        <p class="text-sm font-medium">الإدارة</p>
+                    </a>
+                    {% endif %}
+                    <a class="flex items-center gap-3 px-4 py-3 text-sky-100 hover:bg-sky-800 rounded-xl group transition-all"
+                        href="{{ url_for('about') }}">
+                        <span
+                            class="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">info</span>
+                        <p class="text-sm font-medium">من نحن</p>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="p-4 border-t border-sky-800/50">
+                <a href="{{ url_for('logout') }}"
+                    class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-sky-700 hover:bg-red-500 hover:border-red-500 text-sky-200 hover:text-white transition-all text-sm font-bold">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    تسجيل الخروج
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col lg:mr-64 min-h-screen relative z-10">
+            <!-- Header -->
+            <header class="sticky top-0 z-30 bg-app-bg/80 backdrop-blur-md border-b border-text-main/10 px-6 py-4">
+                <div class="max-w-full mx-auto w-full">
+                    <div class="flex items-center gap-2 text-xs text-text-main/60 mb-2">
+                        <a class="hover:text-text-main transition-colors" href="{{ url_for('dashboard') }}">لوحة
+                            التحكم</a>
+                        <span
+                            class="material-symbols-outlined text-[12px] rotate-180 text-text-main/40">chevron_right</span>
+                        <span class="text-text-main font-medium">تحويلات الفروع</span>
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h1 class="text-2xl font-bold text-text-main tracking-tight">تحويلات الفروع</h1>
+                            <p class="text-text-main/60 text-sm mt-1">إدارة حركات المخزون بين الفروع.</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="p-2 flex-1 w-full max-w-full mx-auto">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="space-y-2 mb-6">
+                    {% for category, message in messages %}
+                    <div
+                        class="p-4 rounded-lg {% if category == 'error' %}bg-red-50 text-red-700 border border-red-200{% elif category == 'success' %}bg-green-50 text-green-700 border border-green-200{% elif category == 'warning' %}bg-yellow-50 text-yellow-700 border border-yellow-200{% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <!-- Analysis Form -->
+                <div class="bg-surface rounded-2xl border border-text-main/10 shadow-sm p-6 mb-6">
+                    <h3 class="text-lg font-bold text-text-main mb-4">إعدادات التحليل</h3>
+
+                    <!-- Branch Selection -->
+                    <form method="post" action="{{ url_for('transfers_select_branches') }}" class="mb-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-text-main mb-1">فرع المصدر</label>
+                                <select name="source_branch"
+                                    class="w-full px-4 py-2 border border-border-color rounded-lg bg-white text-text-main focus:ring-primary focus:border-primary">
+                                    <option value="all" {% if not selected_source or selected_source=='all' %}selected{%
+                                        endif %}>جميع الفروع</option>
+                                    {% for branch in branches %}
+                                    <option value="{{ branch }}" {% if selected_source==branch %}selected{% endif %}>{{
+                                        branch }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-text-main mb-1">فرع الهدف</label>
+                                <select name="target_branch"
+                                    class="w-full px-4 py-2 border border-border-color rounded-lg bg-white text-text-main focus:ring-primary focus:border-primary">
+                                    <option value="all" {% if not selected_target or selected_target=='all' %}selected{%
+                                        endif %}>جميع الفروع</option>
+                                    {% for branch in branches %}
+                                    <option value="{{ branch }}" {% if selected_target==branch %}selected{% endif %}>{{
+                                        branch }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit"
+                            class="mt-3 flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-text-main rounded-lg transition-colors text-sm font-bold">
+                            <span class="material-symbols-outlined text-[18px]">check</span>
+                            <span>تحديد الفروع</span>
+                        </button>
+                    </form>
+
+                    <!-- Analysis Parameters -->
+                    <!-- Analysis Parameters -->
+                    <form id="transfersForm" method="post" action="{{ url_for('transfers_analyze') }}"
+                        class="space-y-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-text-main mb-1">الحد الأدنى للتغطية
+                                    (أيام)</label>
+                                <input type="number" name="min_coverage"
+                                    value="{{ params.min_coverage if params else 7 }}" min="1"
+                                    class="w-full px-3 py-2 border border-border-color rounded-lg focus:ring-primary focus:border-primary" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-text-main mb-1">الحد الأقصى للتغطية
+                                    (أيام)</label>
+                                <input type="number" name="max_coverage"
+                                    value="{{ params.max_coverage if params else 30 }}" min="1"
+                                    class="w-full px-3 py-2 border border-border-color rounded-lg focus:ring-primary focus:border-primary" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-text-main mb-1">من تاريخ</label>
+                                <input type="date" name="start_date" value="{{ params.start_date if params else '' }}"
+                                    class="w-full px-3 py-2 border border-border-color rounded-lg focus:ring-primary focus:border-primary" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-text-main mb-1">إلى تاريخ</label>
+                                <input type="date" name="end_date" value="{{ params.end_date if params else '' }}"
+                                    class="w-full px-3 py-2 border border-border-color rounded-lg focus:ring-primary focus:border-primary" />
+                            </div>
+                        </div>
+
+                    </form>
+
+                    <div class="flex gap-3">
+                        <button type="submit" form="transfersForm"
+                            class="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dark text-text-main rounded-xl transition-all text-sm font-black shadow-lg shadow-primary/20">
+                            <span class="material-symbols-outlined text-[20px]">analytics</span>
+                            <span>تشغيل التحليل</span>
+                        </button>
+
+                        {% if transfer_results %}
+                        <a href="{{ url_for('transfers_export') }}"
+                            class="flex items-center gap-2 px-6 py-3 bg-white hover:bg-sky-50 text-text-main rounded-xl border border-border-color transition-all text-sm font-bold shadow-sm">
+                            <span class="material-symbols-outlined text-[20px]">download</span>
+                            <span>تصدير النتائج</span>
+                        </a>
+
+                        <form method="post" action="{{ url_for('transfers_clear') }}" class="inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit"
+                                class="flex items-center gap-2 px-6 py-3 bg-white hover:bg-red-50 text-red-600 rounded-xl border border-red-200 transition-all text-sm font-bold">
+                                <span class="material-symbols-outlined text-[20px]">refresh</span>
+                                <span>مسح النتائج</span>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Results Table -->
+                {% if transfer_results %}
+                <div
+                    class="bg-surface rounded-2xl border border-text-main/10 shadow-xl shadow-text-main/5 flex flex-col overflow-hidden">
+                    <div
+                        class="p-5 border-b border-text-main/5 flex flex-col md:flex-row gap-4 justify-between items-center bg-white">
+                        <div class="relative w-full md:max-w-md group">
+                            <div
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-text-main/40 group-focus-within:text-text-main transition-colors">
+                                <span class="material-symbols-outlined text-[20px]">search</span>
+                            </div>
+                            <input
+                                class="block w-full rounded-xl border-text-main/10 bg-app-bg/30 text-slate-800 pr-10 pl-4 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-slate-400 transition-all shadow-sm"
+                                placeholder="بحث برقم التحويل، الفرع، أو الحالة..." type="text" id="transferSearch" />
+                        </div>
+
+                        <div class="flex gap-2 w-full md:w-auto">
+                            <button
+                                class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-text-main/10 bg-white hover:bg-app-bg text-text-main text-sm font-semibold transition-colors shadow-sm">
+                                <span class="material-symbols-outlined text-[18px]">filter_list</span>
+                                <span>تصفية</span>
+                            </button>
+                            <button
+                                class="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-text-main/10 bg-white hover:bg-app-bg text-text-main text-sm font-semibold transition-colors shadow-sm">
+                                <span class="material-symbols-outlined text-[18px]">download</span>
+                                <span>تصدير</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full text-sm text-right">
+                            <thead class="bg-app-bg/50 text-text-main border-b border-text-main/10">
+                                <tr>
+                                    <th class="px-4 py-2 font-bold cursor-pointer hover:bg-primary/10 transition-colors group select-none first:rounded-tr-lg"
+                                        scope="col">
+                                        <div class="flex items-center gap-1">
+                                            كود المنتج
+                                            <span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+                                        </div>
+                                    </th>
+                                    <th class="px-4 py-2 font-bold cursor-pointer hover:bg-primary/10 transition-colors group select-none"
+                                        scope="col">
+                                        <div class="flex items-center gap-1">
+                                            اسم الصنف
+                                            <span
+                                                class="material-symbols-outlined text-[16px] text-text-main/30 opacity-0 group-hover:opacity-100 transition-opacity">unfold_more</span>
+                                        </div>
+                                    </th>
+                                    <th class="px-4 py-2 font-bold cursor-pointer hover:bg-primary/10 transition-colors group select-none"
+                                        scope="col">
+                                        <div class="flex items-center gap-1">
+                                            من فرع
+                                            <span
+                                                class="material-symbols-outlined text-[16px] text-text-main/30 opacity-0 group-hover:opacity-100 transition-opacity">unfold_more</span>
+                                        </div>
+                                    </th>
+                                    <th class="px-4 py-2 font-bold cursor-pointer hover:bg-primary/10 transition-colors group select-none"
+                                        scope="col">
+                                        <div class="flex items-center gap-1">
+                                            إلى فرع
+                                            <span
+                                                class="material-symbols-outlined text-[16px] text-text-main/30 opacity-0 group-hover:opacity-100 transition-opacity">unfold_more</span>
+                                        </div>
+                                    </th>
+                                    <th class="px-4 py-2 font-bold text-center" scope="col">كمية النقل</th>
+                                    <th class="px-4 py-2 font-bold cursor-pointer hover:bg-primary/10 transition-colors group select-none"
+                                        scope="col">
+                                        <div class="flex items-center gap-1">
+                                            القسم
+                                            <span
+                                                class="material-symbols-outlined text-[16px] text-text-main/30 opacity-0 group-hover:opacity-100 transition-opacity">unfold_more</span>
+                                        </div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-text-main/5 bg-white" id="transferTableBody">
+                                {% for transfer in transfer_results %}
+                                <tr class="hover:bg-app-bg/20 transition-colors group">
+                                    <td class="px-4 py-2 whitespace-nowrap">
+                                        <span class="font-mono text-text-main font-bold">{{ transfer['كود المنتج']
+                                            }}</span>
+                                    </td>
+                                    <td class="px-4 py-2 text-slate-700 font-medium">{{ transfer['اسم الصنف'] }}</td>
+                                    <td class="px-4 py-2 text-slate-700 font-medium">{{ transfer['من فرع'] }}</td>
+                                    <td class="px-4 py-2 text-slate-700 font-medium">{{ transfer['إلى فرع'] }}</td>
+                                    <td class="px-4 py-2 text-center text-slate-700 font-mono font-bold">{{
+                                        transfer['كمية النقل']
+                                        }}</td>
+                                    <td class="px-4 py-2 text-slate-500 text-sm">{{ transfer['القسم'] or 'عام' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div
+                        class="p-5 border-t border-text-main/5 bg-white flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-medium">
+                        <div class="text-text-main/60">
+                            عرض <span class="font-bold text-text-main">{{ transfer_results|length }}</span> نتيجة
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="bg-surface rounded-2xl border border-text-main/10 p-12 text-center">
+                    <div class="p-4 bg-app-bg rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-text-main text-[32px]">swap_horiz</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-text-main mb-2">لا توجد نتائج تحويل</h3>
+                    <p class="text-text-muted mb-4">قم بتشغيل التحليل لعرض اقتراحات التحويل بين الفروع</p>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    // Search functionality
+    document.getElementById('transferSearch')?.addEventListener('input', function (e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const tableBody = document.getElementById('transferTableBody');
+        const rows = tableBody?.getElementsByTagName('tr');
+
+        if (rows) {
+            for (let row of rows) {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            }
+        }
+    });
+</script>
+{% endblock %}

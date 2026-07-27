@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}الصفحة غير موجودة - TIF App{% endblock %}
+
+{% block body %}
+<div class="relative flex h-full min-h-screen w-full flex-col text-text-main overflow-x-hidden">
+    <!-- Header -->
+    <header class="flex items-center justify-between whitespace-nowrap border-b border-border-color px-10 py-4 bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <div class="flex items-center gap-4 text-text-main">
+            <div class="bg-primary rounded-xl size-10 flex items-center justify-center text-text-main font-bold text-xl shadow-md">
+                T
+            </div>
+            <h2 class="text-xl font-bold leading-tight tracking-tight font-display">TIF App</h2>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="flex flex-1 justify-center items-center py-16 px-4">
+        <div class="flex flex-col w-full max-w-[500px]">
+            <div class="bg-white rounded-2xl shadow-xl shadow-sky-900/5 border border-border-color p-8 md:p-12 flex flex-col gap-8 text-center">
+                <!-- Error Icon -->
+                <div class="flex flex-col items-center gap-4">
+                    <div class="bg-red-100 p-4 rounded-full">
+                        <span class="material-symbols-outlined text-[60px] text-red-600 block">error</span>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <h1 class="text-6xl font-black text-text-main">404</h1>
+                        <h2 class="text-2xl font-bold text-text-main">الصفحة غير موجودة</h2>
+                        <p class="text-text-muted font-medium">عذراً، الصفحة التي تبحث عنها غير موجودة أو تم نقلها إلى مكان آخر</p>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <a href="{{ url_for('dashboard') }}" class="flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dark text-text-main rounded-xl text-sm font-bold transition-colors shadow-md">
+                        <span class="material-symbols-outlined text-[18px]">home</span>
+                        <span>الصفحة الرئيسية</span>
+                    </a>
+                    
+                    <button onclick="history.back()" class="flex items-center justify-center gap-2 px-6 py-3 bg-white hover:bg-gray-50 text-text-main border border-border-color rounded-xl text-sm font-bold transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                        <span>العودة للخلف</span>
+                    </button>
+                </div>
+                
+                <!-- Help Text -->
+                <div class="text-center">
+                    <p class="text-sm text-text-muted">إذا كنت تعتقد أن هذا خطأ، يرجى التواصل مع الدعم الفني</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="flex flex-col gap-6 px-10 py-8 text-center border-t border-border-color bg-white">
+        <div class="flex justify-center items-center gap-2 text-primary-dark">
+            <span class="material-symbols-outlined text-[20px]">inventory_2</span>
+            <span class="font-bold text-text-main">TIF App</span>
+        </div>
+        <p class="text-text-muted text-sm font-medium leading-normal">© 2024 TIF App - نظام متكامل لإدارة المخزون والتنبؤ الذكي. جميع الحقوق محفوظة.</p>
+    </footer>
+</div>
+{% endblock %}

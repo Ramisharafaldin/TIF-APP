@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tif-ai"
+version = "1.0.0"
+description = "TIF-AI cross-platform CLI and setup wizard"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "click>=8.0",
+    "colorama>=0.4",
+    "python-dotenv>=1.0",
+    "pymongo>=4.6",
+    "pandas",
+    "pyarrow",
+    "openpyxl",
+    "bcrypt>=4.0",
+    "requests",
+]
+
+[project.scripts]
+tif = "tif_ai.cli:main"
+
+[tool.setuptools]
+py-modules = []
+packages = ["tif_ai"]

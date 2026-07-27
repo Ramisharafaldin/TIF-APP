@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعداد حساب المسؤول - TIF App</title>
+    <style>
+        :root {
+            --primary: #c82333;
+            --bg: #f4f7f6;
+            --text: #333;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(200, 35, 51, 0.15);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #a71d2a;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .alert-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-success {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .alert-info {
+            background-color: #e0f2fe;
+            color: #075985;
+            border: 1px solid #bae6fd;
+        }
+
+        .footer-links {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+
+        .footer-links a {
+            color: #666;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2>🔐 إعداد حساب المسؤول</h2>
+            </div>
+            <div class="card-body">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ 'error' if category == 'error' else 'success' }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <div class="alert alert-info">
+                    <strong>تنبيه:</strong> هذا الإعداد لمرة واحدة فقط لإنشاء حساب المدير.
+                </div>
+
+                <form action="/setup?token={{ token }}" method="POST">
+                    <!-- Hidden fields for security and logic -->
+                    <input type="hidden" name="token" value="{{ token }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="form-group">
+                        <label for="username">اسم المستخدم (Username)</label>
+                        <input type="text" id="username" name="username" required minlength="3" placeholder="admin"
+                            dir="ltr">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">كلمة المرور (Password)</label>
+                        <input type="password" id="password" name="password" required minlength="8"
+                            placeholder="••••••••" dir="ltr">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password_confirm">تأكيد كلمة المرور (Confirm)</label>
+                        <input type="password" id="password_confirm" name="password_confirm" required
+                            placeholder="••••••••" dir="ltr">
+                    </div>
+
+                    <button type="submit" class="btn">إنشاء حساب المسؤول</button>
+                </form>
+            </div>
+        </div>
+        <div class="footer-links">
+            <a href="/login">← العودة إلى صفحة الدخول</a>
+        </div>
+    </div>
+</body>
+
+</html>

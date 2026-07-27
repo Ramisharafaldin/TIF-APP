@@ -1,0 +1,561 @@
+{% extends "base.html" %}
+
+{% block title %}التنبؤ بالمبيعات - TIF App{% endblock %}
+
+{% block body %}
+<div class="bg-app-bg text-text-main font-display overflow-hidden">
+    <div class="flex h-screen w-full">
+        <!-- Sidebar -->
+        <aside
+            class="hidden md:flex flex-col w-72 bg-app-sidebar border-l border-border-color h-full shrink-0 relative z-20">
+            <div class="p-6">
+                <div class="flex items-center gap-3 mb-8">
+                    <div
+                        class="bg-primary rounded-lg size-10 shrink-0 border border-white shadow-sm flex items-center justify-center text-text-main font-bold text-xl">
+                        T
+                    </div>
+                    <div class="flex flex-col">
+                        <h1 class="text-white text-lg font-bold leading-tight">تطبيق TIF</h1>
+                        <p class="text-sky-300 text-xs">نظام التنبؤ الذكي</p>
+                    </div>
+                </div>
+
+                <nav class="flex flex-col gap-1.5">
+                    <div class="px-3 mb-2 text-xs font-semibold text-sky-400 uppercase tracking-wider">الرئيسية</div>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sky-100 hover:bg-sky-800 transition-all group"
+                        href="{{ url_for('dashboard') }}">
+                        <span
+                            class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">dashboard</span>
+                        <span class="text-sm font-medium">لوحة المعلومات</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sky-100 hover:bg-sky-800 transition-all group"
+                        href="{{ url_for('inventory') }}">
+                        <span
+                            class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">inventory_2</span>
+                        <span class="text-sm font-medium">المخزون</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary text-text-main shadow-md border border-primary/20"
+                        href="{{ url_for('forecasting') }}">
+                        <span class="material-symbols-outlined text-[20px] fill-1">trending_up</span>
+                        <span class="text-sm font-bold">التنبؤات</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sky-100 hover:bg-sky-800 transition-all group"
+                        href="{{ url_for('transfers') }}">
+                        <span
+                            class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">swap_horiz</span>
+                        <span class="text-sm font-medium">التحويلات</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sky-100 hover:bg-sky-800 transition-all group"
+                        href="{{ url_for('data_upload') }}">
+                        <span
+                            class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">upload</span>
+                        <span class="text-sm font-medium">رفع البيانات</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="mt-auto p-6 border-t border-sky-800/50">
+                {% if session.is_admin %}
+                <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sky-100 hover:bg-sky-800 transition-all group mb-2"
+                    href="{{ url_for('admin') }}">
+                    <span
+                        class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">admin_panel_settings</span>
+                    <span class="text-sm font-medium">الإدارة</span>
+                </a>
+                {% endif %}
+                <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sky-100 hover:bg-sky-800 transition-all group mb-2"
+                    href="{{ url_for('about') }}">
+                    <span
+                        class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors">info</span>
+                    <span class="text-sm font-medium">من نحن</span>
+                </a>
+
+                <div class="flex items-center gap-3 mt-4 pt-4 border-t border-sky-800/50">
+                    <div
+                        class="bg-primary rounded-full size-8 border border-white flex items-center justify-center text-text-main font-bold text-sm">
+                        {{ session.username[0].upper() if session.username else 'U' }}
+                    </div>
+                    <div class="flex flex-col overflow-hidden">
+                        <span class="text-xs font-medium text-white truncate">{{ session.username or 'مستخدم' }}</span>
+                        <span class="text-[10px] text-sky-300 truncate">{{ session.username or 'user'
+                            }}@tifapp.com</span>
+                    </div>
+                    <a href="{{ url_for('logout') }}" class="mr-auto text-sky-400 hover:text-red-400 transition-colors">
+                        <span class="material-symbols-outlined text-[18px]">logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col h-full relative overflow-hidden">
+            <!-- Header -->
+            <header
+                class="h-16 border-b border-border-color bg-white/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0 z-10 sticky top-0">
+                <div class="flex items-center gap-2 text-sm">
+                    <div class="flex items-center text-text-muted gap-2">
+                        <span class="material-symbols-outlined text-[18px]">home</span>
+                        <span class="text-xs">/</span>
+                        <span>التنبؤات</span>
+                        <span class="text-xs">/</span>
+                    </div>
+                    <span class="text-text-main font-medium">النتائج</span>
+                </div>
+
+
+                <div class="flex items-center gap-4">
+                    <div class="relative" id="notificationsWrapper">
+                        <button id="notifButton"
+                            class="relative p-2 text-text-muted hover:text-text-main hover:bg-app-bg rounded-full transition-colors">
+                            <span class="material-symbols-outlined">notifications</span>
+                            <span id="notifCountBadge"
+                                class="absolute top-2 right-2 size-2 bg-primary rounded-full border-2 border-white hidden"></span>
+                        </button>
+
+                        <!-- Notifications Dropdown -->
+                        <div id="notifDropdown"
+                            class="hidden absolute top-full left-0 mt-3 w-80 bg-white border border-border-color rounded-xl shadow-2xl z-50 overflow-hidden slide-in-top">
+                            <div
+                                class="p-4 border-b border-border-color flex justify-between items-center bg-app-bg/30">
+                                <h3 class="font-bold text-text-main flex items-center gap-2 text-xs">
+                                    <span class="material-symbols-outlined text-[14px]">notifications</span>
+                                    التنبيهات
+                                </h3>
+                            </div>
+                            <div id="notifContent" class="max-h-[300px] overflow-y-auto">
+                                <div class="p-4 text-center">
+                                    <p class="text-[10px] text-text-muted">جاري التحميل...</p>
+                                </div>
+                            </div>
+                            <div class="p-2.5 bg-app-bg/50 text-center border-t border-border-color">
+                                <a href="{{ url_for('inventory') }}"
+                                    class="text-[10px] font-bold text-primary hover:underline">عرض الكل</a>
+                            </div>
+                        </div>
+                    </div>
+                    <button
+                        class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-border-color text-xs font-medium text-text-main hover:bg-app-bg transition-colors shadow-sm">
+                        <span class="material-symbols-outlined text-[16px]">calendar_today</span>
+                        <span>{{ moment().format('MMMM YYYY') if moment else 'الشهر الحالي' }}</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto p-6 md:p-8 scroll-smooth">
+                <div class="mx-auto max-w-7xl flex flex-col gap-8">
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    <div class="space-y-2">
+                        {% for category, message in messages %}
+                        <div
+                            class="p-4 rounded-lg {% if category == 'error' %}bg-red-50 text-red-700 border border-red-200{% elif category == 'success' %}bg-green-50 text-green-700 border border-green-200{% elif category == 'warning' %}bg-yellow-50 text-yellow-700 border border-yellow-200{% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+
+                    <!-- Header Section -->
+                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div>
+                            <h2 class="text-3xl font-bold text-text-main tracking-tight mb-2">نتائج توقعات المبيعات</h2>
+                            <p class="text-text-muted max-w-2xl font-medium">تحليل شامل للمخزون المتوقع والطلب المستقبلي
+                                بناءً على خوارزميات الذكاء الاصطناعي.</p>
+                        </div>
+
+                        <div class="flex gap-3">
+                            {% if forecast_results %}
+                            <a href="{{ url_for('forecasting_export') }}"
+                                class="flex items-center gap-2 px-4 py-2 bg-white text-text-main rounded-lg border border-border-color hover:border-primary transition-all text-sm font-medium shadow-sm">
+                                <span class="material-symbols-outlined text-[20px]">file_download</span>
+                                تصدير
+                            </a>
+                            {% endif %}
+
+                            <form method="post" action="{{ url_for('forecasting_clear') }}" class="inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <button type="submit"
+                                    class="flex items-center gap-2 px-4 py-2 bg-primary text-text-main rounded-lg hover:bg-primary-dark transition-colors text-sm font-bold shadow-md">
+                                    <span class="material-symbols-outlined text-[20px]">refresh</span>
+                                    مسح النتائج
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Branch Selection -->
+                    <div class="bg-white rounded-xl p-6 border border-border-color shadow-sm">
+                        <h3 class="text-lg font-bold text-text-main mb-4">إعدادات التنبؤ</h3>
+
+                        <form method="post" action="{{ url_for('forecasting_select_branch') }}" class="mb-4">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <div class="flex items-center gap-3">
+                                <label class="text-sm font-medium text-text-main">اختيار الفرع:</label>
+                                <select name="branch_name"
+                                    class="px-4 py-2 border border-border-color rounded-lg bg-white text-text-main focus:ring-primary focus:border-primary"
+                                    onchange="this.form.submit()">
+                                    <option value="all" {% if not selected_branch or selected_branch=='all' %}selected{%
+                                        endif %}>جميع الفروع</option>
+                                    {% for branch in branches %}
+                                    <option value="{{ branch }}" {% if selected_branch==branch %}selected{% endif %}>{{
+                                        branch }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </form>
+
+                        <form method="post" action="{{ url_for('forecasting_run') }}" class="space-y-4">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-text-main mb-1">أيام التنبؤ</label>
+                                    <input type="number" name="forecast_days"
+                                        value="{{ params.forecast_days if params else 30 }}" min="1" max="365"
+                                        class="w-full px-3 py-2 border border-border-color rounded-lg focus:ring-primary focus:border-primary" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-text-main mb-1">من تاريخ</label>
+                                    <input type="date" name="start_date"
+                                        value="{{ params.start_date if params else '' }}"
+                                        class="w-full px-3 py-2 border border-border-color rounded-lg focus:ring-primary focus:border-primary" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-text-main mb-1">إلى تاريخ</label>
+                                    <input type="date" name="end_date" value="{{ params.end_date if params else '' }}"
+                                        class="w-full px-3 py-2 border border-border-color rounded-lg focus:ring-primary focus:border-primary" />
+                                </div>
+                            </div>
+
+                            <button type="submit"
+                                class="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dark text-text-main rounded-lg transition-colors text-sm font-bold shadow-md">
+                                <span class="material-symbols-outlined text-[20px]">auto_graph</span>
+                                <span>تشغيل التنبؤ</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- KPI Cards -->
+                    {% if forecast_results %}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div
+                            class="bg-white border border-border-color rounded-xl p-5 flex flex-col gap-4 hover:border-primary transition-colors group shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <div
+                                    class="p-2 bg-app-bg rounded-lg border border-border-color group-hover:border-primary transition-colors">
+                                    <span
+                                        class="material-symbols-outlined text-text-main group-hover:text-primary transition-colors">inventory_2</span>
+                                </div>
+                                <span
+                                    class="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-600 border border-green-200">+2.5%</span>
+                            </div>
+                            <div>
+                                <span class="text-3xl font-bold text-text-main block mb-1">{{ forecast_results|length
+                                    }}</span>
+                                <span class="text-sm font-medium text-text-muted">المنتجات المتوقعة</span>
+                            </div>
+                        </div>
+
+                        <div
+                            class="bg-white border border-border-color rounded-xl p-5 flex flex-col gap-4 hover:border-primary transition-colors group shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <div
+                                    class="p-2 bg-app-bg rounded-lg border border-border-color group-hover:border-primary transition-colors">
+                                    <span
+                                        class="material-symbols-outlined text-text-main group-hover:text-primary transition-colors">trending_up</span>
+                                </div>
+                                <span
+                                    class="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-600 border border-green-200">+18.2%</span>
+                            </div>
+                            <div>
+                                <span class="text-3xl font-bold text-text-main block mb-1">18.2%</span>
+                                <span class="text-sm font-medium text-text-muted">نمو الطلب المتوقع</span>
+                            </div>
+                        </div>
+
+                        <div
+                            class="bg-white border border-border-color rounded-xl p-5 flex flex-col gap-4 hover:border-primary transition-colors group shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <div
+                                    class="p-2 bg-app-bg rounded-lg border border-border-color group-hover:border-red-400 transition-colors">
+                                    <span
+                                        class="material-symbols-outlined text-text-main group-hover:text-red-500 transition-colors">warning</span>
+                                </div>
+                                <span
+                                    class="text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600 border border-red-200">حرج</span>
+                            </div>
+                            <div>
+                                <span class="text-3xl font-bold text-text-main block mb-1">12</span>
+                                <span class="text-sm font-medium text-text-muted">تنبيهات المخزون</span>
+                            </div>
+                        </div>
+
+                        <div
+                            class="bg-white border border-border-color rounded-xl p-5 flex flex-col gap-4 hover:border-primary transition-colors group shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <div
+                                    class="p-2 bg-app-bg rounded-lg border border-border-color group-hover:border-primary transition-colors">
+                                    <span
+                                        class="material-symbols-outlined text-text-main group-hover:text-primary transition-colors">check_circle</span>
+                                </div>
+                                <span
+                                    class="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 border border-blue-200">ممتاز</span>
+                            </div>
+                            <div>
+                                <span class="text-3xl font-bold text-text-main block mb-1">94%</span>
+                                <span class="text-sm font-medium text-text-muted">دقة التوقعات</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Results Table -->
+                    {% if forecast_results %}
+                    <div class="bg-white border border-border-color rounded-xl shadow-lg overflow-hidden flex flex-col">
+                        <div
+                            class="p-5 border-b border-border-color flex flex-col lg:flex-row gap-4 justify-between items-center bg-app-bg/30">
+                            <div class="relative w-full lg:w-96 group">
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <span
+                                        class="material-symbols-outlined text-text-muted group-focus-within:text-primary transition-colors">search</span>
+                                </div>
+                                <input
+                                    class="w-full h-11 pr-10 pl-4 bg-white border border-border-color rounded-lg text-text-main placeholder-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm transition-all shadow-sm"
+                                    placeholder="بحث باسم المنتج، الرمز، أو الفئة..." type="text" id="forecastSearch" />
+                            </div>
+
+                            <div class="flex items-center gap-2 w-full lg:w-auto overflow-x-auto">
+                                <button
+                                    class="flex items-center gap-2 px-3 py-2 bg-white border border-border-color hover:border-primary rounded-lg text-sm text-text-main transition-all whitespace-nowrap font-medium">
+                                    <span class="material-symbols-outlined text-[18px]">filter_list</span>
+                                    <span>تصفية</span>
+                                </button>
+                                <div class="w-px h-6 bg-border-color mx-1"></div>
+                                <a href="{{ url_for('forecasting') }}"
+                                    class="px-3 py-2 bg-primary text-text-main text-sm font-bold rounded-lg shadow-sm whitespace-nowrap block text-center">الكل</a>
+                                <a href="{{ url_for('forecasting_high_demand') }}"
+                                    class="px-3 py-2 text-text-main hover:bg-app-bg rounded-lg text-sm font-medium transition-colors whitespace-nowrap block text-center">طلب
+                                    مرتفع</a>
+                                <a href="{{ url_for('forecasting_low_stock') }}"
+                                    class="px-3 py-2 text-text-main hover:bg-app-bg rounded-lg text-sm font-medium transition-colors whitespace-nowrap block text-center">مخزون
+                                    منخفض</a>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right border-collapse min-w-[1000px]">
+                                <thead>
+                                    <tr
+                                        class="bg-app-bg/50 border-b border-border-color text-xs uppercase tracking-wider text-text-main font-bold">
+                                        <th class="py-4 px-6 cursor-pointer hover:bg-app-bg transition-colors group">
+                                            <div class="flex items-center gap-1">
+                                                اسم المنتج
+                                                <span
+                                                    class="material-symbols-outlined text-[14px] opacity-0 group-hover:opacity-100 transition-opacity">unfold_more</span>
+                                            </div>
+                                        </th>
+                                        <th class="py-4 px-6 cursor-pointer hover:bg-app-bg transition-colors group">
+                                            <div class="flex items-center gap-1">
+                                                الرمز
+                                                <span
+                                                    class="material-symbols-outlined text-[14px] opacity-0 group-hover:opacity-100 transition-opacity">unfold_more</span>
+                                            </div>
+                                        </th>
+                                        <th class="py-4 px-6 cursor-pointer hover:bg-app-bg transition-colors group">
+                                            <div class="flex items-center gap-1">
+                                                الفئة
+                                                <span
+                                                    class="material-symbols-outlined text-[14px] opacity-0 group-hover:opacity-100 transition-opacity">unfold_more</span>
+                                            </div>
+                                        </th>
+                                        <th
+                                            class="py-4 px-6 text-center cursor-pointer hover:bg-app-bg transition-colors group">
+                                            <div class="flex items-center justify-center gap-1">
+                                                المخزون الحالي
+                                                <span
+                                                    class="material-symbols-outlined text-[14px] opacity-0 group-hover:opacity-100 transition-opacity">unfold_more</span>
+                                            </div>
+                                        </th>
+                                        <th
+                                            class="py-4 px-6 text-center bg-primary/20 text-text-main font-bold border-b-2 border-primary">
+                                            <div class="flex items-center justify-center gap-1">
+                                                توقعات المبيعات
+                                                <span
+                                                    class="material-symbols-outlined text-[16px]">arrow_downward</span>
+                                            </div>
+                                        </th>
+                                        <th
+                                            class="py-4 px-6 text-center bg-sky-100 text-sky-800 font-bold border-b-2 border-sky-400">
+                                            <div class="flex items-center justify-center gap-1">
+                                                الطلب المتوقع
+                                            </div>
+                                        </th>
+                                        <th class="py-4 px-6 cursor-pointer hover:bg-app-bg transition-colors group">
+                                            <div class="flex items-center gap-1">
+                                                الثقة
+                                            </div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-border-color text-sm" id="forecastTableBody">
+                                    {% for item in forecast_results %}
+                                    <tr class="hover:bg-app-bg/30 transition-colors group">
+                                        <td class="py-4 px-6">
+                                            <div class="flex items-center gap-4">
+                                                <div
+                                                    class="size-10 rounded-lg border border-border-color bg-app-bg shrink-0 shadow-sm flex items-center justify-center text-text-main font-bold text-sm">
+                                                    {{ item.product_code[0] if item.product_code else 'P' }}
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <span
+                                                        class="font-bold text-text-main group-hover:text-primary transition-colors">{{
+                                                        item.product_name or 'منتج غير محدد' }}</span>
+                                                    <span class="text-xs text-text-muted mt-0.5">{{ item.product_code or
+                                                        'غير محدد' }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-6 text-text-main font-mono text-xs">{{ item.product_code or
+                                            'N/A' }}</td>
+                                        <td class="py-4 px-6 text-text-main">{{ item.item_category1 or 'عام' }}</td>
+                                        <td class="py-4 px-6 text-center">
+                                            <span
+                                                class="px-2.5 py-1 rounded-md text-xs font-bold {% if (item.Last_on_hand or 0) < 50 %}bg-red-100 text-red-600 border border-red-200{% elif (item.Last_on_hand or 0) < 200 %}bg-yellow-100 text-yellow-600 border border-yellow-200{% else %}bg-green-100 text-green-600 border border-green-200{% endif %} inline-block w-24">
+                                                {{ "{:,.0f}".format(item.Last_on_hand or 0) }} وحدة
+                                            </span>
+                                        </td>
+                                        <td
+                                            class="py-4 px-6 text-center font-bold text-text-main bg-primary/10 text-base border-l border-r border-border-color">
+                                            {{ "{:,.0f}".format(item.forecast_quantity or item.predicted_quantity or 0)
+                                            }}
+                                        </td>
+                                        <td
+                                            class="py-4 px-6 text-center font-black text-primary bg-sky-50 text-base border-r border-border-color">
+                                            {% if item.expected_demand and item.expected_demand > 0 %}{{
+                                            "{:,.0f}".format(item.expected_demand) }}{% else %}-{% endif %}
+                                        </td>
+                                        <td class="py-4 px-6">
+                                            <div class="flex flex-col gap-1.5 w-24">
+                                                {% set confidence_pct = ((item.confidence or 0.85) * 100) | round | int
+                                                %}
+                                                <div
+                                                    class="flex justify-between items-center text-[10px] font-bold text-text-main">
+                                                    <span>عالي</span>
+                                                    <span class="text-green-600">{{ confidence_pct }}%</span>
+                                                </div>
+                                                <div class="w-full h-1.5 bg-app-bg rounded-full overflow-hidden">
+                                                    <div class="h-full bg-green-500 rounded-full shadow-sm"
+                                                        style="--w: {{ confidence_pct }}%; width: var(--w);"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div
+                            class="p-5 border-t border-border-color flex flex-col sm:flex-row items-center justify-between gap-4 bg-app-bg/10">
+                            <div class="text-sm text-text-muted font-medium">
+                                عرض <span class="text-text-main font-bold">{{ forecast_results|length }}</span> نتيجة
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="bg-white border border-border-color rounded-xl p-12 text-center">
+                        <div class="p-4 bg-app-bg rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-text-main text-[32px]">auto_graph</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-text-main mb-2">لا توجد نتائج تنبؤ</h3>
+                        <p class="text-text-muted mb-4">اختر فرعاً وقم بتشغيل التنبؤ لعرض النتائج</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    // Search functionality
+    document.getElementById('forecastSearch')?.addEventListener('input', function (e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const tableBody = document.getElementById('forecastTableBody');
+        const rows = tableBody?.getElementsByTagName('tr');
+
+        if (rows) {
+            for (let row of rows) {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            }
+        }
+
+    });
+
+    // --- Notifications Logic ---
+    (function () {
+        const notifButton = document.getElementById('notifButton');
+        const notifDropdown = document.getElementById('notifDropdown');
+        const notifContent = document.getElementById('notifContent');
+        const notifCountBadge = document.getElementById('notifCountBadge');
+        let notifLoaded = false;
+
+        if (notifButton) {
+            notifButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notifDropdown.classList.toggle('hidden');
+                if (!notifDropdown.classList.contains('hidden') && !notifLoaded) {
+                    fetchNotifications();
+                }
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (notifDropdown && !notifDropdown.contains(e.target) && e.target !== notifButton) {
+                notifDropdown.classList.add('hidden');
+            }
+        });
+
+        async function fetchNotifications() {
+            try {
+                const response = await fetch('/api/notifications');
+                const data = await response.json();
+                if (data.success) {
+                    renderNotifications(data.notifications);
+                    updateNotifBadge(data.count);
+                    notifLoaded = true;
+                }
+            } catch (error) {
+                console.error('Error fetching notifications:', error);
+            }
+        }
+
+        function renderNotifications(notifications) {
+            if (!notifications || notifications.length === 0) {
+                notifContent.innerHTML = '<div class="p-4 text-center text-[10px] text-text-muted">لا توجد تنبيهات</div>';
+                return;
+            }
+            notifContent.innerHTML = notifications.map(notif => `
+                <div class="p-3 border-b border-border-color hover:bg-app-bg/50 transition-colors cursor-pointer">
+                    <p class="text-[11px] font-bold text-text-main">${notif.title}</p>
+                    <p class="text-[10px] text-text-muted mt-0.5">${notif.message}</p>
+                </div>
+            `).join('');
+        }
+
+        function updateNotifBadge(count) {
+            if (count > 0) {
+                notifCountBadge.classList.remove('hidden');
+            } else {
+                notifCountBadge.classList.add('hidden');
+            }
+        }
+
+        fetchNotifications();
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,809 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة التحكم - TIF App{% endblock %}
+
+{% block body %}
+<div class="relative flex h-screen w-full bg-app-bg overflow-hidden">
+    <!-- Sidebar -->
+    <aside
+        class="flex w-72 flex-col justify-between border-l border-border-color bg-app-sidebar overflow-y-auto hidden md:flex shrink-0">
+        <div class="flex flex-col gap-6 p-6">
+            <div class="flex items-center gap-4">
+                <div
+                    class="bg-primary rounded-xl size-12 flex items-center justify-center text-text-main font-bold text-xl shadow-md">
+                    T
+                </div>
+                <div class="flex flex-col">
+                    <h1 class="text-white text-lg font-bold leading-tight">TIF App</h1>
+                    <p class="text-sky-300 text-xs font-medium">إدارة المخزون</p>
+                </div>
+            </div>
+
+            <nav class="flex flex-col gap-2">
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-text-main shadow-md transition-all"
+                    href="{{ url_for('dashboard') }}">
+                    <span class="material-symbols-outlined filled">dashboard</span>
+                    <p class="text-sm font-bold">لوحة التحكم</p>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-white hover:bg-white/10 transition-colors group"
+                    href="{{ url_for('inventory') }}">
+                    <span class="material-symbols-outlined group-hover:text-primary transition-colors">warehouse</span>
+                    <p class="text-sm font-medium">المخزون</p>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-white hover:bg-white/10 transition-colors group"
+                    href="{{ url_for('forecasting') }}">
+                    <span
+                        class="material-symbols-outlined group-hover:text-primary transition-colors">trending_up</span>
+                    <p class="text-sm font-medium">التوقعات</p>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-white hover:bg-white/10 transition-colors group"
+                    href="{{ url_for('transfers') }}">
+                    <span class="material-symbols-outlined group-hover:text-primary transition-colors">swap_horiz</span>
+                    <p class="text-sm font-medium">التحويلات</p>
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-white hover:bg-white/10 transition-colors group"
+                    href="{{ url_for('data_upload') }}">
+                    <span class="material-symbols-outlined group-hover:text-primary transition-colors">upload</span>
+                    <p class="text-sm font-medium">رفع البيانات</p>
+                </a>
+                {% if session.is_admin %}
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-white hover:bg-white/10 transition-colors group"
+                    href="{{ url_for('admin') }}">
+                    <span
+                        class="material-symbols-outlined group-hover:text-primary transition-colors">admin_panel_settings</span>
+                    <p class="text-sm font-medium">الإدارة</p>
+                </a>
+                {% endif %}
+                <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-white hover:bg-white/10 transition-colors group"
+                    href="{{ url_for('about') }}">
+                    <span class="material-symbols-outlined group-hover:text-primary transition-colors">info</span>
+                    <p class="text-sm font-medium">من نحن</p>
+                </a>
+            </nav>
+        </div>
+
+        <div class="p-6 border-t border-sky-800">
+            <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors"
+                href="{{ url_for('logout') }}">
+                <span class="material-symbols-outlined">logout</span>
+                <p class="text-sm font-medium">تسجيل الخروج</p>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex flex-1 flex-col h-full overflow-hidden relative">
+        <!-- Header -->
+        <header
+            class="flex items-center justify-between border-b border-border-color bg-white/80 backdrop-blur-md px-6 py-4 sticky top-0 z-30">
+            <div class="flex-1 max-w-lg">
+                <div
+                    class="relative flex items-center w-full h-12 rounded-xl bg-white border border-border-color group focus-within:border-primary transition-colors">
+                    <div class="flex items-center justify-center w-12 h-full text-text-muted">
+                        <span class="material-symbols-outlined">search</span>
+                    </div>
+                    <input
+                        class="w-full h-full bg-transparent border-none text-text-main text-sm placeholder:text-slate-400 focus:ring-0 px-0"
+                        placeholder="بحث عن منتجات، طلبات، أو تقارير..." type="text" />
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 mr-4">
+
+                <div class="relative" id="notificationsWrapper">
+                    <button id="notifButton"
+                        class="flex items-center justify-center size-10 rounded-full bg-white border border-border-color text-text-muted hover:text-text-main hover:border-primary transition-all relative">
+                        <span class="material-symbols-outlined text-[20px]">notifications</span>
+                        <span id="notifCountBadge"
+                            class="absolute -top-1 -left-1 min-w-[18px] h-[18px] px-1 bg-red-500 rounded-full border border-white text-white text-[10px] flex items-center justify-center hidden">0</span>
+                    </button>
+
+                    <!-- Notifications Dropdown -->
+                    <div id="notifDropdown"
+                        class="hidden absolute top-full left-0 mt-3 w-80 bg-white border border-border-color rounded-xl shadow-2xl z-50 overflow-hidden slide-in-top">
+                        <div class="p-4 border-b border-border-color flex justify-between items-center bg-app-bg/30">
+                            <h3 class="font-bold text-text-main flex items-center gap-2">
+                                <span class="material-symbols-outlined text-sm">notifications</span>
+                                التنبيهات
+                            </h3>
+                            <span id="notifStatusLabel"
+                                class="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">الكل</span>
+                        </div>
+                        <div id="notifContent" class="max-h-[400px] overflow-y-auto">
+                            <!-- Placeholder -->
+                            <div class="p-8 text-center">
+                                <div
+                                    class="animate-spin size-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2">
+                                </div>
+                                <p class="text-xs text-text-muted">جاري تحميل التنبيهات...</p>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-app-bg/50 text-center border-t border-border-color">
+                            <a href="{{ url_for('inventory') }}"
+                                class="text-xs font-bold text-primary hover:underline flex items-center justify-center gap-1">
+                                عرض الكل في صفحة المخزون
+                                <span class="material-symbols-outlined text-[14px]">arrow_left</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="h-8 w-px bg-border-color mx-2"></div>
+
+                <div
+                    class="flex items-center gap-3 cursor-pointer p-1 pr-2 rounded-full hover:bg-white transition-colors">
+                    <div
+                        class="bg-primary rounded-full size-9 border-2 border-primary flex items-center justify-center text-text-main font-bold text-sm">
+                        {{ session.username[0].upper() if session.username else 'U' }}
+                    </div>
+                    <div class="hidden lg:flex flex-col items-start">
+                        <p class="text-text-main text-sm font-bold leading-none">{{ session.username or 'مستخدم' }}</p>
+                        <p class="text-text-muted text-xs mt-1">{{ 'مدير النظام' if session.is_admin else 'مستخدم' }}
+                        </p>
+                    </div>
+                    <span class="material-symbols-outlined text-text-muted text-sm hidden lg:block">expand_more</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="flex-1 overflow-y-auto p-6 lg:p-10 scroll-smooth">
+            <div class="max-w-7xl mx-auto flex flex-col gap-8">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="space-y-2">
+                    {% for category, message in messages %}
+                    <div
+                        class="p-4 rounded-lg {% if category == 'error' %}bg-red-50 text-red-700 border border-red-200{% elif category == 'success' %}bg-green-50 text-green-700 border border-green-200{% elif category == 'warning' %}bg-yellow-50 text-yellow-700 border border-yellow-200{% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <!-- Header Section -->
+                <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+                    <div>
+                        <h2 class="text-3xl font-black text-text-main tracking-tight mb-2">لوحة التحكم</h2>
+                        <p class="text-text-muted">نظرة عامة على صحة المخزون وأداء المبيعات</p>
+                    </div>
+
+                    <div
+                        class="flex flex-wrap items-center gap-3 bg-white p-2 rounded-2xl border border-border-color shadow-sm">
+                        <form method="post" action="{{ url_for('dashboard_filter') }}" class="flex items-center gap-3">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                    <span
+                                        class="material-symbols-outlined text-text-muted text-xl">calendar_today</span>
+                                </div>
+                                <input type="date" name="start_date" value="{{ filters.start_date or '' }}"
+                                    class="h-10 pr-10 pl-4 bg-app-bg border border-border-color rounded-xl text-sm text-text-main focus:ring-primary focus:border-primary cursor-pointer hover:border-primary transition-colors min-w-[160px]">
+                            </div>
+
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                    <span
+                                        class="material-symbols-outlined text-text-muted text-xl">calendar_today</span>
+                                </div>
+                                <input type="date" name="end_date" value="{{ filters.end_date or '' }}"
+                                    class="h-10 pr-10 pl-4 bg-app-bg border border-border-color rounded-xl text-sm text-text-main focus:ring-primary focus:border-primary cursor-pointer hover:border-primary transition-colors min-w-[160px]">
+                            </div>
+
+                            <div class="relative group">
+                                <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                    <span class="material-symbols-outlined text-text-muted text-xl">store</span>
+                                </div>
+                                <select name="branch"
+                                    class="h-10 pr-10 pl-8 bg-app-bg border border-border-color rounded-xl text-sm text-text-main focus:ring-primary focus:border-primary cursor-pointer hover:border-primary transition-colors appearance-none min-w-[160px]">
+                                    <option value="" {% if not filters.branch %}selected{% endif %}>جميع الفروع</option>
+                                    {% for branch in branches %}
+                                    <option value="{{ branch }}" {% if filters.branch==branch %}selected{% endif %}>{{
+                                        branch }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="absolute inset-y-0 left-2 flex items-center pointer-events-none">
+                                    <span class="material-symbols-outlined text-text-muted text-lg">expand_more</span>
+                                </div>
+                            </div>
+
+                            <button type="submit"
+                                class="h-10 px-6 bg-primary hover:bg-primary-dark text-text-main text-sm font-bold rounded-xl transition-colors shadow-md flex items-center gap-2">
+                                <span class="material-symbols-outlined text-lg">filter_list</span>
+                                <span>تطبيق</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <div
+                        class="bg-white border border-border-color p-5 rounded-2xl shadow-sm relative overflow-hidden group">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex flex-col">
+                                <p class="text-text-muted text-sm font-medium mb-1">إجمالي الأصناف</p>
+                                <h3 class="text-2xl font-black text-text-main">{{ stats.total_products or 0 }}</h3>
+                            </div>
+                            <div class="p-2 bg-primary/20 rounded-lg text-primary-dark">
+                                <span class="material-symbols-outlined">inventory_2</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-text-muted text-xs">في النظام</span>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-white border border-border-color p-5 rounded-2xl shadow-sm relative overflow-hidden group">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex flex-col">
+                                <p class="text-text-muted text-sm font-medium mb-1">قيمة المخزون</p>
+                                <h3 class="text-2xl font-black text-text-main">{{
+                                    "{:,.0f}".format(stats.total_stock_value or 0) }}</h3>
+                            </div>
+                            <div class="p-2 bg-primary/20 rounded-lg text-primary-dark">
+                                <span class="material-symbols-outlined">payments</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-text-muted text-xs">إجمالي القيمة</span>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-white border border-border-color p-5 rounded-2xl shadow-sm relative overflow-hidden group">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex flex-col">
+                                <p class="text-text-muted text-sm font-medium mb-1">إجمالي المبيعات</p>
+                                <h3 class="text-2xl font-black text-text-main">{{ "{:,.0f}".format(stats.total_sales or
+                                    0) }}</h3>
+                            </div>
+                            <div class="p-2 bg-green-100 rounded-lg text-green-600">
+                                <span class="material-symbols-outlined">trending_up</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-600 text-xs font-medium bg-green-50 px-2 py-0.5 rounded">إجمالي
+                                الإيرادات</span>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-white border border-border-color p-5 rounded-2xl shadow-sm relative overflow-hidden group">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex flex-col">
+                                <p class="text-text-muted text-sm font-medium mb-1">الموردين</p>
+                                <h3 class="text-2xl font-black text-text-main">{{ stats.total_suppliers or 0 }} <span
+                                        class="text-sm font-normal text-text-muted">مورد</span></h3>
+                            </div>
+                            <div class="p-2 bg-primary/20 rounded-lg text-primary-dark">
+                                <span class="material-symbols-outlined">store</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span
+                                class="flex items-center text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded text-xs font-bold">
+                                <span class="material-symbols-outlined text-sm">check_circle</span>
+                                نشط
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Charts -->
+                <div class="space-y-6">
+                    <!-- Monthly Sales Chart - Full Width -->
+                    <div class="bg-white border border-border-color rounded-2xl p-6 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-text-main">المبيعات الشهرية</h3>
+                            <div class="p-2 bg-blue-100 rounded-lg text-blue-600">
+                                <span class="material-symbols-outlined text-[24px]">trending_up</span>
+                            </div>
+                        </div>
+                        <div class="relative h-80">
+                            <canvas id="monthlySalesChart"></canvas>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <p class="text-sm text-text-muted">إجمالي المبيعات خلال الأشهر الماضية</p>
+                        </div>
+                    </div>
+
+                    <!-- Supplier Sales and Department Stock Charts - Side by Side -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Supplier Sales Chart -->
+                        <div class="bg-white border border-border-color rounded-2xl p-6 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-bold text-text-main">مبيعات الموردين</h3>
+                                <div class="p-2 bg-green-100 rounded-lg text-green-600">
+                                    <span class="material-symbols-outlined text-[20px]">donut_large</span>
+                                </div>
+                            </div>
+                            <div class="relative h-64">
+                                <canvas id="supplierSalesChart"></canvas>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <p class="text-sm text-text-muted">توزيع المبيعات حسب المورد</p>
+                            </div>
+                        </div>
+
+                        <!-- Department Stock Chart -->
+                        <div class="bg-white border border-border-color rounded-2xl p-6 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-bold text-text-main">مخزون الأقسام</h3>
+                                <div class="p-2 bg-purple-100 rounded-lg text-purple-600">
+                                    <span class="material-symbols-outlined text-[20px]">inventory</span>
+                                </div>
+                            </div>
+                            <div class="relative h-64">
+                                <canvas id="departmentStockChart"></canvas>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <p class="text-sm text-text-muted">توزيع المخزون حسب القسم</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white border border-border-color rounded-2xl p-6 shadow-sm">
+                    <h3 class="text-lg font-bold text-text-main mb-4">الإجراءات السريعة</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <a href="{{ url_for('data_upload') }}"
+                            class="flex items-center gap-3 p-4 rounded-xl border border-border-color hover:border-primary hover:bg-primary/5 transition-all group">
+                            <div
+                                class="p-2 bg-primary/20 rounded-lg text-primary-dark group-hover:bg-primary group-hover:text-text-main transition-colors">
+                                <span class="material-symbols-outlined">upload</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-text-main">رفع البيانات</p>
+                                <p class="text-xs text-text-muted">إضافة ملفات جديدة</p>
+                            </div>
+                        </a>
+
+                        <a href="{{ url_for('inventory') }}"
+                            class="flex items-center gap-3 p-4 rounded-xl border border-border-color hover:border-primary hover:bg-primary/5 transition-all group">
+                            <div
+                                class="p-2 bg-primary/20 rounded-lg text-primary-dark group-hover:bg-primary group-hover:text-text-main transition-colors">
+                                <span class="material-symbols-outlined">inventory_2</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-text-main">تحليل المخزون</p>
+                                <p class="text-xs text-text-muted">مراجعة الأصناف</p>
+                            </div>
+                        </a>
+
+                        <a href="{{ url_for('forecasting') }}"
+                            class="flex items-center gap-3 p-4 rounded-xl border border-border-color hover:border-primary hover:bg-primary/5 transition-all group">
+                            <div
+                                class="p-2 bg-primary/20 rounded-lg text-primary-dark group-hover:bg-primary group-hover:text-text-main transition-colors">
+                                <span class="material-symbols-outlined">trending_up</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-text-main">التنبؤ</p>
+                                <p class="text-xs text-text-muted">توقع المبيعات</p>
+                            </div>
+                        </a>
+
+                        <a href="{{ url_for('transfers') }}"
+                            class="flex items-center gap-3 p-4 rounded-xl border border-border-color hover:border-primary hover:bg-primary/5 transition-all group">
+                            <div
+                                class="p-2 bg-primary/20 rounded-lg text-primary-dark group-hover:bg-primary group-hover:text-text-main transition-colors">
+                                <span class="material-symbols-outlined">swap_horiz</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-text-main">التحويلات</p>
+                                <p class="text-xs text-text-muted">نقل بين الفروع</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Export Actions -->
+                <div class="bg-white border border-border-color rounded-2xl p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-text-main">تصدير التقارير</h3>
+                        <span class="text-xs text-text-muted bg-app-bg px-2 py-1 rounded">XLSX</span>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <a href="{{ url_for('dashboard_export') }}"
+                            class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-text-main rounded-lg text-sm font-bold transition-colors shadow-md">
+                            <span class="material-symbols-outlined text-[18px]">download</span>
+                            <span>تصدير لوحة التحكم</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+{% block extra_scripts %}
+<script>
+    // Chart.js configuration for RTL support
+    Chart.defaults.font.family = 'Noto Sans Arabic, Inter, sans-serif';
+    Chart.defaults.plugins.legend.rtl = true;
+    Chart.defaults.plugins.legend.textDirection = 'rtl';
+
+    // Color palette
+    const colors = {
+        primary: '#FACC15',
+        primaryDark: '#EAB308',
+        blue: '#3B82F6',
+        green: '#10B981',
+        purple: '#8B5CF6',
+        red: '#EF4444',
+        orange: '#F59E0B',
+        teal: '#14B8A6',
+        pink: '#EC4899',
+        indigo: '#6366F1'
+    };
+
+    // Monthly Sales Chart
+    const monthlySalesData = JSON.parse('{{ monthly_sales_data | tojson | safe }}');
+    const monthlySalesCtx = document.getElementById('monthlySalesChart').getContext('2d');
+    new Chart(monthlySalesCtx, {
+        type: 'line',
+        data: {
+            labels: monthlySalesData.labels || [],
+            datasets: [{
+                label: 'المبيعات الشهرية',
+                data: monthlySalesData.values || [],
+                borderColor: colors.blue,
+                backgroundColor: colors.blue + '20',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: colors.blue,
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: colors.blue,
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: false,
+                    callbacks: {
+                        label: function (context) {
+                            return 'المبيعات: ' + context.parsed.y.toLocaleString('ar-SA');
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#E5E7EB',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#6B7280',
+                        font: {
+                            family: 'Noto Sans Arabic, Inter, sans-serif'
+                        },
+                        callback: function (value) {
+                            return value.toLocaleString('ar-SA');
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#6B7280',
+                        font: {
+                            family: 'Noto Sans Arabic, Inter, sans-serif'
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Supplier Sales Chart
+    const supplierSalesData = JSON.parse('{{ supplier_sales_data | tojson | safe }}');
+    const supplierSalesCtx = document.getElementById('supplierSalesChart').getContext('2d');
+    new Chart(supplierSalesCtx, {
+        type: 'bar',
+        data: {
+            labels: supplierSalesData.labels || [],
+            datasets: [{
+                label: 'المبيعات',
+                data: supplierSalesData.values || [],
+                backgroundColor: colors.green + '80',
+                borderColor: colors.green,
+                borderWidth: 2,
+                borderRadius: 6,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: colors.green,
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: false,
+                    callbacks: {
+                        label: function (context) {
+                            return 'المبيعات: ' + context.parsed.y.toLocaleString('ar-SA');
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#E5E7EB',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#6B7280',
+                        font: {
+                            family: 'Noto Sans Arabic, Inter, sans-serif'
+                        },
+                        callback: function (value) {
+                            return value.toLocaleString('ar-SA');
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#6B7280',
+                        font: {
+                            family: 'Noto Sans Arabic, Inter, sans-serif'
+                        },
+                        maxRotation: 45,
+                        minRotation: 0
+                    }
+                }
+            }
+        }
+    });
+
+    // Department Stock Chart
+    const departmentStockData = JSON.parse('{{ department_stock_data | tojson | safe }}');
+    const departmentStockCtx = document.getElementById('departmentStockChart').getContext('2d');
+    new Chart(departmentStockCtx, {
+        type: 'bar',
+        data: {
+            labels: departmentStockData.labels || [],
+            datasets: [{
+                label: 'كمية المخزون',
+                data: departmentStockData.values || [],
+                backgroundColor: colors.purple + '80',
+                borderColor: colors.purple,
+                borderWidth: 2,
+                borderRadius: 6,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#ffffff',
+                    borderColor: colors.purple,
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: false,
+                    callbacks: {
+                        label: function (context) {
+                            return 'المخزون: ' + context.parsed.y.toLocaleString('ar-SA') + ' قطعة';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#E5E7EB',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#6B7280',
+                        font: {
+                            family: 'Noto Sans Arabic, Inter, sans-serif'
+                        },
+                        callback: function (value) {
+                            return value.toLocaleString('ar-SA');
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#6B7280',
+                        font: {
+                            family: 'Noto Sans Arabic, Inter, sans-serif'
+                        },
+                        maxRotation: 45,
+                        minRotation: 0
+                    }
+                }
+            }
+        }
+    });
+
+    // Handle empty data states
+    function showEmptyState(chartId, message) {
+        const canvas = document.getElementById(chartId);
+        const container = canvas.parentElement;
+        container.innerHTML = `
+        <div class="flex flex-col items-center justify-center h-64 text-text-muted">
+            <span class="material-symbols-outlined text-4xl mb-2 opacity-50">analytics</span>
+            <p class="text-sm font-medium">${message}</p>
+        </div>
+    `;
+    }
+
+    // Check for empty data and show appropriate messages
+    if (!monthlySalesData.labels || monthlySalesData.labels.length === 0) {
+        showEmptyState('monthlySalesChart', 'لا توجد بيانات مبيعات شهرية');
+    }
+
+    if (!supplierSalesData.labels || supplierSalesData.labels.length === 0) {
+        showEmptyState('supplierSalesChart', 'لا توجد بيانات مبيعات الموردين');
+    }
+
+
+    if (!departmentStockData.labels || departmentStockData.labels.length === 0) {
+        showEmptyState('departmentStockChart', 'لا توجد بيانات مخزون الأقسام');
+    }
+
+    // --- Notifications Logic ---
+    const notifButton = document.getElementById('notifButton');
+    const notifDropdown = document.getElementById('notifDropdown');
+    const notifContent = document.getElementById('notifContent');
+    const notifCountBadge = document.getElementById('notifCountBadge');
+    let notifLoaded = false;
+
+    // Toggle dropdown
+    if (notifButton) {
+        notifButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifDropdown.classList.toggle('hidden');
+            if (!notifDropdown.classList.contains('hidden') && !notifLoaded) {
+                fetchNotifications();
+            }
+        });
+    }
+
+    // Close dropdown on click outside
+    document.addEventListener('click', (e) => {
+        if (notifDropdown && !notifDropdown.contains(e.target) && e.target !== notifButton) {
+            notifDropdown.classList.add('hidden');
+        }
+    });
+
+    // Fetch notifications
+    async function fetchNotifications() {
+        try {
+            const response = await fetch('/api/notifications');
+            const data = await response.json();
+
+            if (data.success) {
+                renderNotifications(data.notifications);
+                updateNotifBadge(data.count);
+                notifLoaded = true;
+            } else {
+                renderNotifError();
+            }
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+            renderNotifError();
+        }
+    }
+
+    // Render notifications list
+    function renderNotifications(notifications) {
+        if (!notifications || notifications.length === 0) {
+            notifContent.innerHTML = `
+                <div class="p-8 text-center">
+                    <span class="material-symbols-outlined text-4xl text-sky-200 mb-2">notifications_off</span>
+                    <p class="text-sm text-text-muted">لا توجد تنبيهات جديدة حالياً</p>
+                </div>
+            `;
+            return;
+        }
+
+        notifContent.innerHTML = notifications.map(notif => `
+            <div class="p-4 border-b border-border-color hover:bg-app-bg/50 transition-colors cursor-pointer group">
+                <div class="flex gap-3">
+                    <div class="size-8 rounded-full ${notif.type === 'warning' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'} flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[18px]">${notif.type === 'warning' ? 'warning' : 'info'}</span>
+                    </div>
+                    <div class="flex flex-col gap-1 overflow-hidden">
+                        <div class="flex justify-between items-start">
+                            <span class="text-xs font-bold text-text-main">${notif.title}</span>
+                            <span class="text-[10px] text-text-muted">${formatTimestamp(notif.timestamp)}</span>
+                        </div>
+                        <p class="text-[11px] text-text-muted leading-relaxed line-clamp-2 group-hover:text-text-main transition-colors">${notif.message}</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded uppercase">${notif.product_code}</span>
+                            <span class="text-[9px] font-bold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded truncate">${notif.branch}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderNotifError() {
+        notifContent.innerHTML = `
+            <div class="p-8 text-center">
+                <span class="material-symbols-outlined text-4xl text-red-100 mb-2">error</span>
+                <p class="text-sm text-text-muted">حدث خطأ أثناء تحميل التنبيهات</p>
+                <button onclick="fetchNotifications()" class="text-xs font-bold text-primary mt-2 hover:underline">إعادة المحاولة</button>
+            </div>
+        `;
+    }
+
+    function updateNotifBadge(count) {
+        if (count > 0) {
+            notifCountBadge.textContent = count > 9 ? '+9' : count;
+            notifCountBadge.classList.remove('hidden');
+        } else {
+            notifCountBadge.classList.add('hidden');
+        }
+    }
+
+    function formatTimestamp(timestamp) {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffInMs = now - date;
+        const diffInMins = Math.floor(diffInMs / (1000 * 60));
+
+        if (diffInMins < 1) return 'الآن';
+        if (diffInMins < 60) return `قليل ${diffInMins} د`;
+
+        const diffInHours = Math.floor(diffInMins / 60);
+        if (diffInHours < 24) return `قليل ${diffInHours} س`;
+
+        return date.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
+    }
+
+    // Initial badge check
+    fetchNotifications();
+</script>
+{% endblock %}
+{% endblock %}

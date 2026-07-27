@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}تسجيل الدخول - TIF App{% endblock %}
+
+{% block body %}
+<div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+    <div class="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-white/5 rounded-full blur-[100px]"></div>
+    <div class="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px]"></div>
+</div>
+
+<main class="flex-1 flex items-center justify-center p-4 min-h-screen">
+    <div class="w-full max-w-[440px] flex flex-col gap-6 relative z-10">
+        <div class="bg-white/70 backdrop-filter backdrop-blur-16 shadow-xl rounded-2xl p-8 sm:p-10 transition-all duration-300 border border-white/20">
+            <div class="flex flex-col items-center text-center mb-8">
+                <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4 ring-1 ring-primary/30 shadow-lg">
+                    <span class="material-symbols-outlined text-primary text-[32px]">lock</span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-text-main mb-2 tracking-tight">مرحباً بك</h1>
+                <p class="text-text-muted text-sm sm:text-base">نظام إدارة المخزون والتنبؤ</p>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="mb-4 p-3 rounded-lg {% if category == 'error' %}bg-red-50 text-red-700 border border-red-200{% elif category == 'success' %}bg-green-50 text-green-700 border border-green-200{% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form action="{{ url_for('login') }}" method="post" class="flex flex-col gap-5">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-medium text-text-main" for="username">اسم المستخدم</label>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-text-muted group-focus-within:text-primary transition-colors">person</span>
+                        </div>
+                        <input class="block w-full rounded-lg border-border-color bg-surface text-text-main placeholder-text-muted focus:border-primary focus:ring-primary h-12 pr-10 pl-3 text-base sm:text-sm transition-all duration-200" 
+                               dir="rtl" id="username" name="username" placeholder="أدخل اسم المستخدم" type="text" required/>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <label class="text-sm font-medium text-text-main" for="password">كلمة المرور</label>
+                    </div>
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-text-muted group-focus-within:text-primary transition-colors">key</span>
+                        </div>
+                        <input class="block w-full rounded-lg border-border-color bg-surface text-text-main placeholder-text-muted focus:border-primary focus:ring-primary h-12 pr-10 pl-3 text-base sm:text-sm transition-all duration-200" 
+                               dir="rtl" id="password" name="password" placeholder="••••••••" type="password" required/>
+                    </div>
+                </div>
+                
+                <button class="mt-4 w-full bg-primary hover:bg-primary-dark text-text-main font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg shadow-primary/20 hover:shadow-primary/40 focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-app-bg flex justify-center items-center gap-2" type="submit">
+                    <span>تسجيل الدخول</span>
+                    <span class="material-symbols-outlined text-[20px]">login</span>
+                </button>
+            </form>
+            
+            <div class="mt-8 p-4 bg-app-bg rounded-lg border border-border-color">
+                <div class="flex items-start gap-3">
+                    <span class="material-symbols-outlined text-primary text-xl mt-0.5">info</span>
+                    <div class="text-xs text-text-muted leading-relaxed">
+                        <p class="font-bold mb-1 text-text-main">بيانات الدخول الافتراضية:</p>
+                        <div class="flex flex-col gap-1 font-mono text-[11px] opacity-80" dir="ltr">
+                            <span class="flex items-center gap-2"><span class="w-8 opacity-50">User:</span> <span class="text-text-main">admin</span></span>
+                            <span class="flex items-center gap-2"><span class="w-8 opacity-50">Pass:</span> <span class="text-text-main">password</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="text-center">
+            <p class="text-xs text-text-muted">
+                © 2023 TIF App. جميع الحقوق محفوظة.
+            </p>
+        </footer>
+    </div>
+</main>
+{% endblock %}
